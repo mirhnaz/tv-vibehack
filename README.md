@@ -71,19 +71,55 @@ Leave the TV on.
 
 ### 2. On the computer: install the tools (once)
 
-**Mac.** Open **Terminal** (press ⌘ Space, type *Terminal*, press Return) and paste these lines
-one at a time. The first one installs [Homebrew](https://brew.sh); skip it if you have it, and
-follow what it prints at the end (it may ask you to run two lines to add `brew` to your PATH).
+**Mac.** Open **Terminal**: press ⌘ Space, type *Terminal*, press Return.
+
+Each grey box below is **one command**. Copy the whole box, paste it into Terminal, press
+**Return**, and wait until it finishes, which is when the `%` prompt comes back and you can type
+again. Then do the next box. Some take a few minutes.
+
+**a. Install Homebrew**, the Mac's app installer for developer tools. Skip this if you already
+have it (`brew --version` prints a version number).
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+It asks for your Mac password. Nothing appears on screen while you type it; that's normal. Type
+it and press Return, then press Return again when it asks to continue.
+
+**b. Let Terminal find Homebrew.** Needed on Macs with Apple chips (M1, M2, M3, M4); harmless on
+older Intel Macs.
+
+```bash
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile && eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+**c. Install Git, Java and the Android build tools.**
+
+```bash
 brew install git openjdk@17 android-commandlinetools
+```
+
+**d. Accept the Android licences.** This answers "yes" to each licence for you.
+
+```bash
 yes | sdkmanager --licenses
+```
+
+**e. Download the parts of Android needed to build the home screen app.**
+
+```bash
 sdkmanager "platforms;android-34" "build-tools;34.0.0"
+```
+
+**f. Install Claude Code.**
+
+```bash
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-The last line installs Claude Code; the first time you run `claude` it asks you to sign in.
+Then **close Terminal and open a new window**, so it picks up everything you just installed.
+The first time you run `claude` (step 3) it asks you to sign in.
 
 <details>
 <summary><strong>Windows or Linux</strong></summary>
@@ -99,17 +135,32 @@ The last line installs Claude Code; the first time you run `claude` it asks you 
 
 ### 3. Download this repo and start the assistant
 
-If someone sent you a link to their copy (a fork) of this repo, use that address instead.
+Same as before: one box at a time, press Return after each.
+
+**a. Download the repo.**
 
 ```bash
-git clone https://github.com/Gathin23/tv-vibehack.git
+git clone https://github.com/mirhnaz/tv-vibehack.git
+```
+
+**b. Go into the downloaded folder.**
+
+```bash
 cd tv-vibehack
+```
+
+**c. Start Claude Code.** The first time, it asks you to sign in and whether you trust this
+folder; say yes.
+
+```bash
 claude
 ```
 
 ### 4. Paste this prompt
 
-Replace the two values in angle brackets with what you wrote down in step 1:
+This one is different: it's a message **to Claude**, not a Terminal command. Copy the whole box
+(all lines together), paste it where Claude asks for input, replace the two values in angle
+brackets with what you wrote down in step 1, and press Return.
 
 ```text
 Read PROMPT.md in this folder and do everything it describes on my TV, reusing tools/ and
@@ -118,8 +169,9 @@ is <IP>. If examples/ has a debloat list for my model or a close one, start from
 check every package on my TV before disabling it.
 ```
 
-Want the TV as bare as possible, like a plain screen for YouTube and the HDMI inputs? Add this
-line at the end:
+Want the TV as bare as possible, like a plain screen for YouTube and the HDMI inputs? Paste this
+box too, right after the prompt above and before pressing Return, so Claude gets both as one
+message:
 
 ```text
 Afterwards make it as minimal and fast as possible without breaking the system: disable
