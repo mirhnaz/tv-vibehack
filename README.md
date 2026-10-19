@@ -17,7 +17,7 @@ prompt that did it is in this repo so you can do the same with yours.
 ## Table of contents
 
 - [How it works](#how-it-works)
-- [Quick start](#quick-start)
+- [Step by step](#step-by-step)
 - [What you get](#what-you-get)
 - [Supported TVs](#supported-tvs)
 - [Doing it by hand](#doing-it-by-hand)
@@ -43,27 +43,112 @@ After that, everything is standard Android tooling:
 The bloat differs by brand, which is why the prompt asks your coding assistant to discover it
 on your TV and ask you before touching anything you might use.
 
-## Quick start
+## Step by step
 
-You need a computer on the same Wi-Fi as the TV and a coding assistant with shell access
-(Claude Code, or anything similar).
+About 30–45 minutes, most of it waiting for downloads. You need:
 
-**1. On the TV**
-Settings → Device Preferences → About → press OK on **Build** seven times → go back →
-Developer options → turn on **USB debugging**. Some TVs also show a Network or ADB debugging
-toggle; turn it on too. Keep the TV switched on.
+- an Android TV or Google TV (see [Supported TVs](#supported-tvs)),
+- a Mac, Windows or Linux computer on the **same Wi-Fi** as the TV,
+- [Claude Code](https://claude.com/claude-code) (or another coding assistant that can run
+  commands on your computer).
 
-**2. On your computer**
-Open your assistant, paste the prompt from [`PROMPT.md`](PROMPT.md), and fill in your TV model.
+You don't need a cable, root or any Android experience. Nothing gets uninstalled, and every step
+can be undone.
 
-**3. Follow along**
-Accept the "Allow USB debugging?" prompt when it appears on the TV, then answer the checklist
-questions: which streaming apps you use, which four go in the dock, whether to keep the voice
-assistant, Chromecast and firmware updates.
+### 1. On the TV: switch on debugging
 
-That's it. The assistant backs up, debloats, builds and installs the launcher, and checks every
-step with screenshots pulled from the TV. On a 1 GB Mi TV the whole thing took one afternoon the
-first time; with this repo as context, people report about fifteen minutes.
+1. Open **Settings → Device Preferences → About**.
+2. Scroll down to **Build** and press OK on it **seven times**, until it says you are a developer.
+3. Go back one screen. Open **Developer options** (now at the bottom of Device Preferences) and
+   switch on **USB debugging**. If you also see **Network debugging** or **ADB over network**,
+   switch that on too. Many TVs, Xiaomi included, don't have it; USB debugging alone is enough.
+4. Write down two things:
+   - the **model**: Settings → Device Preferences → About → Model (for example `MiTV-MOOQ0`),
+   - the **IP address**: Settings → Network & Internet → your Wi-Fi network → IP address
+     (for example `192.168.1.50`).
+
+Leave the TV on.
+
+### 2. On the computer: install the tools (once)
+
+**Mac.** Open **Terminal** (press ⌘ Space, type *Terminal*, press Return) and paste these lines
+one at a time. The first one installs [Homebrew](https://brew.sh); skip it if you have it, and
+follow what it prints at the end (it may ask you to run two lines to add `brew` to your PATH).
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install git openjdk@17 android-commandlinetools
+yes | sdkmanager --licenses
+sdkmanager "platforms;android-34" "build-tools;34.0.0"
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+The last line installs Claude Code; the first time you run `claude` it asks you to sign in.
+
+<details>
+<summary><strong>Windows or Linux</strong></summary>
+
+- **Windows**: install [Git](https://git-scm.com), [Python 3](https://www.python.org) and
+  [Android Studio](https://developer.android.com/studio) (it brings the JDK and SDK), then
+  Claude Code. The assistant uses the `.ps1` scripts; see [Windows](#windows) below.
+- **Linux**: install `git`, `adb` (package `android-tools`), a JDK 17 or newer, and the Android
+  SDK command-line tools in `~/Android/Sdk` with platform 34 and build-tools 34.0.0. The native
+  `adb` works on Linux, so the assistant can skip the Python client and build with
+  `launcher/build-and-install-linux.sh`.
+</details>
+
+### 3. Download this repo and start the assistant
+
+If someone sent you a link to their copy (a fork) of this repo, use that address instead.
+
+```bash
+git clone https://github.com/Gathin23/tv-vibehack.git
+cd tv-vibehack
+claude
+```
+
+### 4. Paste this prompt
+
+Replace the two values in angle brackets with what you wrote down in step 1:
+
+```text
+Read PROMPT.md in this folder and do everything it describes on my TV, reusing tools/ and
+launcher/ from this repo instead of writing new ones. My TV model is <MODEL> and its IP address
+is <IP>. If examples/ has a debloat list for my model or a close one, start from it, but still
+check every package on my TV before disabling it.
+```
+
+Want the TV as bare as possible, like a plain screen for YouTube and the HDMI inputs? Add this
+line at the end:
+
+```text
+Afterwards make it as minimal and fast as possible without breaking the system: disable
+everything not needed for the apps I keep, HDMI inputs, the remote, Wi-Fi and the Play Store.
+```
+
+### 5. Follow along
+
+- **Within the first minute**, the TV shows **"Allow USB debugging?"**. Tick *Always allow from
+  this computer* and press **OK**. This is the only time you need to be at the TV with the remote;
+  after that the assistant presses buttons and takes screenshots over Wi-Fi.
+- The assistant **asks before running commands**. Read what it wants to do and approve it.
+- It asks **three or four checklist questions**: which streaming apps you use (the rest get
+  disabled), which four apps go in the dock and in what order, and whether to keep the voice
+  assistant, Chromecast and firmware updates.
+- It then backs up, debloats, builds and installs the launcher, and checks each step with
+  screenshots from the TV.
+
+### 6. Check it
+
+When the assistant says it's done: press **Home** on the remote, open YouTube, switch to one of
+your HDMI inputs, and press Home again to come back. If anything is missing or broken, tell the
+assistant what you see; it can re-enable any app in seconds.
+
+**To undo everything**, ask the assistant to "restore my TV", or run the restore script it wrote
+(see [Doing it by hand](#doing-it-by-hand)). To bring back a single app without the computer:
+TV Settings → Apps → See all apps → show system apps → the app → **Enable**.
+
+**Afterwards** you can switch USB debugging off again; the new home screen keeps working.
 
 ## What you get
 
@@ -98,6 +183,7 @@ Lists that people have tested and contributed live in [`examples/`](examples/):
 | TV | OS |
 |---|---|
 | Xiaomi Mi TV 4A (MiTV-MOOQ1) | Android TV 10 |
+| Xiaomi Mi TV 55 (MiTV-MOOQ0) | Android TV 10 |
 | Xiaomi MiTV-AXSO0 | Android TV 9 |
 | TCL 55" 4K Google TV, 2023 (G10) | Google TV 12 |
 | SANYO ATV R2 | Android TV 9 |
@@ -121,6 +207,7 @@ printf 'cmd1\ncmd2\n' | tools/venv/bin/python -I tools/tv.py --batch   # several
 
 tools/disable.sh examples/xiaomi-mi-tv-4a/debloat.txt        # apply a debloat list
 tools/restore.sh examples/xiaomi-mi-tv-4a/debloat.txt        # undo it and restore the stock launcher
+tools/restore-from-backup.sh backup/<date>                   # undo everything since a backup (native adb)
 ```
 
 | Tool | What it does |
@@ -157,7 +244,8 @@ the dock order, apps to hide, your TV's Live TV package, and the number of colum
 **Build and install** with one command:
 
 ```bash
-TV_HOST=192.168.1.50 launcher/build-and-install.sh
+TV_HOST=192.168.1.50 launcher/build-and-install.sh          # macOS
+TV_HOST=192.168.1.50 launcher/build-and-install-linux.sh    # Linux, native adb, SDK in ~/Android/Sdk
 ```
 
 It needs JDK 17 and the Android SDK (platform 34, build-tools 34.0.0). On macOS:
